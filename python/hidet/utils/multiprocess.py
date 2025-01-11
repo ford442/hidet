@@ -62,7 +62,7 @@ def parallel_imap(
     num_workers = min(num_workers, len(jobs))
 
     # Use ThreadPoolExecutor for threading
-    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+    with ThreadPoolExecutor(max_workers=8) as executor:
         # chunksize is not supported in ThreadPoolExecutor, use map directly
         yield from executor.map(_wrapped_func, range(len(jobs)))  
 
@@ -95,8 +95,8 @@ def parallel_imap_old(
 
 def parallel_map(func: Callable, jobs: Sequence[Any], num_workers: Optional[int] = None) -> Iterable[Any]:
     if num_workers is None:
-        num_workers = os.cpu_count()
-    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        num_workers = 6
+    with ThreadPoolExecutor(max_workers=8) as executor:
         ret = list(executor.map(func, jobs))  # Use executor.map directly
     return ret
     
