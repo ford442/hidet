@@ -56,9 +56,6 @@ def parallel_imap(
     global _job_queue
     assert len(jobs) > 1
 
-    if _job_queue is not None:
-        raise RuntimeError('Cannot call parallel_map recursively.')
-
     _job_queue = JobQueue(func, jobs)  # Assuming JobQueue is defined elsewhere
 
     num_workers = get_parallel_num_workers(max_num_workers, mem_for_worker)  # Assuming this function is defined
