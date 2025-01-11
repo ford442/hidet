@@ -50,8 +50,28 @@ def get_parallel_num_workers(max_num_workers: Optional[int] = None, mem_for_work
         num_workers = min(num_workers, limit_by_memory)
     return int(num_workers)
 
-
 def parallel_imap(
+    func: Callable, jobs: Sequence[Any], max_num_workers: Optional[int] = None, mem_for_worker: Optional[int] = None
+) -> Iterable[Any]:
+    global _job_queue
+    assert len(jobs) > 1
+
+    if _job_queue is not None:
+        raise RuntimeError('Cannot call parallel_map recursively.')
+
+    _job_queue = JobQueue(func, jobs)  # Assuming JobQueue is defined elsewhere
+
+    num_workers = get_parallel_num_workers(max_num_workers, mem_for_worker)  # Assuming this function is defined
+    num_workers = min(num_workers, len(jobs))
+
+    # Use ThreadPoolExecutor for threading
+    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        # chunksize is not supported in ThreadPoolExecutor, use map directly
+        yield from executor.map(_wrapped_func, range(len(jobs)))  
+
+    _job_queue = None
+    
+def parallel_imap_old(
     func: Callable, jobs: Sequence[Any], max_num_workers: Optional[int] = None, mem_for_worker: Optional[int] = None
 ) -> Iterable[Any]:
     global _job_queue
