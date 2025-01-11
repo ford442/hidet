@@ -13,6 +13,7 @@ from typing import Any, Sequence, Callable, Optional, Iterable
 import multiprocessing
 import os
 import psutil
+from concurrent.futures import ThreadPoolExecutor
 
 
 class JobQueue:
@@ -75,8 +76,14 @@ def parallel_imap(
 
     _job_queue = None
 
-
 def parallel_map(func: Callable, jobs: Sequence[Any], num_workers: Optional[int] = None) -> Iterable[Any]:
+    if num_workers is None:
+        num_workers = os.cpu_count()
+    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        ret = list(executor.map(func, jobs))  # Use executor.map directly
+    return ret
+    
+def parallel_map_old(func: Callable, jobs: Sequence[Any], num_workers: Optional[int] = None) -> Iterable[Any]:
     global _job_queue
 
     if _job_queue is not None:
